@@ -1,0 +1,825 @@
+        // VALUES END
+
+	</script>
+
+<script type="text/javascript">
+var a={'series':[],'type':'line','width':900,'height':600,'paddingTop':25,'paddingRight':15,'paddingBottom':55,'paddingLeft':95,'title':'Test graph','figId':0,'xTitle':'Lanes','yTitle':'Percentage(%)','xTicks':8,'yTicks':4,'maxFactor':1.1,'minFactor':0.9,'maxNormal':null,'minNormal':null,'dotR':2.5,'lengendFont':18,'lengendDistenceY':20,'bacgkroundColor':'#FFF','colorSet':['#dc143c','#1e90ff','#f4a460','#32CD32','#696969','#ff5995','#b6e354','#feed6c','#8cedff','#9e6ffe','#899ca1','#56c2d6','#bf4646','#516083','#f92672','#82b414','#fd971f','#465457','#808384','#8c54fe'],'duration':500,'drawdots':true,'innerLine':true};
+
+var b = {
+    "tabId": 0,
+    "font": 21
+};
+
+function c(a) {
+    return a.toString().replace(/[ )(%~]/g, '_');
+};
+
+function d(a, b, c) {
+    var d = [];
+    for (var e in a) {
+        if (b[e] == true) d.push(c(a[e]));;
+    };
+    return c(d);
+};
+
+function e(a) {
+    if (a instanceof Array) var b = [];
+    else var b = {};;
+    for (var c in a) b[c] = typeof a[c] === 'object' ? e(a[c]) : a[c];;
+    return b;
+};
+
+function f(a, b, c) {
+    var d = [];
+    for (var e in a) {
+        if (c[e] == true) d.push(a[e][b]);;
+    };
+    return d;
+};
+
+function g(a, b, c) {
+    var d = [];
+    if (!a) return null;;
+    for (var e = 0; e < a.length; e++) {
+        if (!b.has(c(a[e]))) d.push(a[e]);;
+    };
+    return d;
+};
+
+function h(a, b, c) {
+    var d = a.append('text').style('font-size', b + 'px').style('opacity', 0).text(c);
+    var e = d.node().getBBox().width;
+    d.remove();
+    return e;
+};
+
+function i(a, b, c) {
+    if (b.length == 0) {
+        for (var d in a) c.push(d);;
+        return a;
+    };
+    var e = {};
+    for (var d in b) {
+        if (b[d] in a) {
+            e[b[d]] = a[b[d]];
+            c.push(b[d]);
+        };
+    };
+    if ("xTag" in a) e.xTag = a.xTag;;
+    return e;
+};
+
+function j(a, b, c) {
+    if (a == ">") return b > c;
+    else if (a == "<") return b < c;
+    else {
+        console.log("Symbol Error: " + [b, a, c].join(" "));
+        return true;
+    };
+}
+var k = {
+    ToUnicode: function(a) {
+        return escape(a).toLocaleLowerCase().replace(/%u/gi, '\\u');
+    },
+    ToGB2312: function(a) {
+        return unescape(a.replace(/\\u/gi, '%u'));
+    }
+};
+
+function l(a, b, c) {
+    this.id = a;
+    this.opt = c;
+    this.drawLine = {};
+    this.xAxisLen = c.width - c.paddingLeft - c.paddingRight;
+    this.yAxisLen = c.height - c.paddingTop - c.paddingBottom;
+    this.series = [];
+    this.dataObj = i(b, c.series, this.series);
+    this.datasetLen = b[d3.keys(b)[0]].length;
+    this.currentSeries = [];
+    this.currentDataObj = {};
+    if (typeof a == "string") this.div = d3.select('#' + a);
+    else this.div = a;;
+    this.tipDiv = d3.select('#tipsBox');
+    this.tipHead = this.tipDiv.select('#tipHead');
+    this.tipBody = this.tipDiv.select('#tipBody');
+    this.svg = null;
+    this.xScale = null;
+    this.yScale = null;
+    this.xAxis = null;
+    this.yAxis = null;
+    this.xTag = [];
+    this.tipLine = null;
+    this.highlightDots = null;
+    this.lineObj = {};
+    var g = this;
+    this.init = function() {
+        for (var a in this.dataObj) this.drawLine[a] = true;;
+        this.title = this.div.append('p').attr('class', 'svgTitle').style('text-align', 'center').append('a').attr('download', c.title + '.csv').attr('href', '#').text('Fig' + c.figId + '. ' + c.title).on('click', function() {
+            var a = "Pos," + d3.keys(g.dataObj).join(',') + "\n";
+            for (var b = 0; b < g.datasetLen; b++) {
+                var c = [b + 1];
+                for (var d in g.series) c.push(g.dataObj[g.series[d]][b]);;
+                a += b < g.datasetLen - 1 ? c.join(',') + "\n" : c.join(',');
+            };
+            d3.select(this).attr('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(a));
+        });
+        this.svg = this.div.append('svg').attr('width', c.width).attr('height', c.height);
+        this.svg.append('rect').attr('x', 0).attr('y', 0).attr('width', c.width).attr('height', c.height).style('fill', c.bacgkroundColor).style('opacity', .1);
+        this.xTitle = this.svg.append('text').attr("class", "axisTitle").attr("dx", c.paddingLeft / 2 + this.xAxisLen / 2).attr('dy', c.height - 8).text(c.xTitle);
+        this.yTitle = this.svg.append('text').attr("class", "axisTitle").attr("dx", -60).attr('dy', c.paddingTop + this.yAxisLen / 2 + 20).attr('transform', 'rotate(-90, ' + 0 + ',' + (c.paddingTop + this.yAxisLen / 2) + ')').text(c.yTitle);
+        this.drawLegend();
+        this.tipLine = this.svg.append('line').attr('class', 'tipLine').attr('x1', 0).attr('y1', c.paddingTop).attr('x2', 0).attr('y2', c.paddingTop + this.yAxisLen).style('opacity', 0);
+        this.tipSelector = this.svg.append('rect').attr('class', 'overlay').attr('x', c.paddingLeft).attr('y', c.paddingTop).attr('width', this.xAxisLen).attr('height', this.yAxisLen);
+        if (c.type == "line") {
+            this.tipValFunc = function(a, b) {
+                return this.dataObj[a][b];
+            };
+            this.tipSelector.on('mousemove', g.showTip).on('mouseout', function() {
+                g.tipLine.style('opacity', 0);
+                g.tipDiv.style('display', 'none');
+                if (g.highlightDots != null) g.highlightDots.selectAll('circle').style('opacity', 0);;
+            }).on('mouseover', function() {
+                g.tipLine.style('opacity', 1);
+                g.tipDiv.style('display', 'block');
+            });
+        } else if (c.type == "area") this.tipValFunc = function(a, b) {
+            var c = this.currentDataObj[a][b];
+            return Math.round(100 * (c.top - c.bot)) / 100;
+        };;
+        if ("xTag" in this.dataObj) {
+            this.xTag = this.dataObj.xTag;
+            delete this.dataObj.xTag;
+        } else {
+            for (var b = 0; b < this.datasetLen; b++) this.xTag.push(b);;
+        };
+        this.xScale = d3.scale.linear().domain([0, this.datasetLen]).range([c.paddingLeft, c.paddingLeft + this.xAxisLen]);
+        var d = d3.svg.axis().scale(this.xScale).tickSize(7, 10, 3).orient("bottom").tickFormat(function(a, b) {
+            return a;
+        });
+        this.xAxis = this.svg.append("g").attr("class", "x axis").attr("transform", "translate(0," + (c.height - c.paddingBottom) + ")").call(d);
+        this.redraw(0);
+    };
+    this.drawLegend = function() {
+        var a = new Array();
+        var b = 40;
+        var d = c.lengendFont / 4 * 3;
+        var e = 5;
+        var f = 0;
+        for (var i in this.series) {
+            var j = h(this.svg, c.lengendFont, this.series[i]) + d + b;
+            if (a.length > 0 && a[f][0] - j < c.paddingLeft + this.xAxisLen / 4) {
+                e += d + 10;
+                f = i;
+            } else {
+                for (var k = f; k < a.length; k++) a[k][0] -= j;;
+            };
+            a.push([(c.width - c.paddingRight - j), e]);
+        };
+        var l = c.width - c.paddingRight - a.length * (d + b) - d3.sum(a);
+        var m = this.svg.append('g').attr('id', 'lengend');
+        for (var i in this.series) {
+            var n = this.series[i];
+            m.append('rect').data([i]).attr('x', a[i][0]).attr('y', a[i][1]).attr('rx', 2).attr('ry', 2).attr('width', d).attr('height', d).style('stroke', c.colorSet[i]).style('stroke-width', 2).style('fill', c.colorSet[i]).on('mouseover', function(a) {
+                if (g.drawLine[g.series[a]] == true) {
+                    for (var b in g.lineObj) {
+                        if (g.drawLine[b] == true && g.series[a] != b) g.lineObj[b].style('opacity', .2);;
+                    };
+                };
+            }).on('mouseout', function(a) {
+                for (var b in g.lineObj) {
+                    if (g.drawLine[b] == true && g.series[a] != b) g.lineObj[b].style('opacity', 1);;
+                };
+            }).on('click', function(a) {
+                if (g.drawLine[g.series[a]] == true) {
+                    g.drawLine[g.series[a]] = false;
+                    d3.select(this).style('fill', '#fff');
+                } else {
+                    g.drawLine[g.series[a]] = true;
+                    d3.select(this).style('fill', g.opt.colorSet[a]);
+                };
+                g.redraw(g.opt.duration);
+            });
+            m.append('text').attr('dx', a[i][0] + d + 5).attr('dy', a[i][1] + 13).style('font-size', c.lengendFont + 'px').text(n);
+        };
+    };
+    this.redraw = function(a) {
+        this.drawAxis(a);
+        if (c.type == "line") this.drawLine(a);
+        else if (c.type == "area") this.drawArea(a);;
+    };
+    this.drawAxis = function(a) {
+        if (c.type == "line") {
+            var b = d(this.dataObj, this.drawLine, d3.max);
+            var e = d(this.dataObj, this.drawLine, d3.min);
+            e = e > 0 ? e * 0 : e * c.maxFactor;
+            b = b > 0 ? b * c.maxFactor : b * c.minFactor;
+        } else if (c.type == "area") {
+            var b = 100;
+            var e = 0;
+        };
+        this.yScale = d3.scale.linear().domain([e, b]).range([c.paddingTop + this.yAxisLen, c.paddingTop]);
+        var f = d3.svg.axis().scale(this.yScale).tickSize(6, 10, 3).orient("left");
+        if (c.innerLine) f.tickSize(-this.xAxisLen, 10, 3);;
+        if (this.yAxis === null) this.yAxis = this.svg.append("g").attr("class", "y axis").attr("transform", "translate(" + c.paddingLeft + ",0)").call(f);
+        else if (b) this.yAxis.transition().duration(a).call(f);;
+        var g = c.paddingTop + this.yAxisLen / 2 + 20 + 65 + this.yAxis.node().getBBox().x;
+        this.yTitle.attr("dy", g);
+    };
+    this.drawLine = function(a) {
+        var d = d3.svg.line().x(function(a, b) {
+            return g.xScale(b + 1);
+        }).y(function(a) {
+            return g.yScale(a);
+        });
+        for (var e in this.series) {
+            var h = this.series[e];
+            if (h in this.lineObj && this.drawLine[h] == false) {
+                this.lineObj[h].transition().duration(100).remove();
+                delete this.lineObj[h];
+                continue;
+            } else if (!(h in this.lineObj) && this.drawLine[h] == true) {
+                var i = d3.mean(this.dataObj[h]);
+                var j = [];
+                for (var k = 0; k < this.datasetLen; k++) j.push(i);;
+                var l = this.svg.append('g').attr('id', 'series_' + h).style('pointer-events', 'none');
+                var m = l.append('path').data(j).attr("d", d(j)).attr('id', 'line_' + h).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').style("fill", "none").style("stroke-width", 2).style('stroke', c.colorSet[e]);
+                if (c.drawdots == true) var n = l.selectAll('circle').data(j).enter().append('circle').attr('cx', function(a, b) {
+                    return g.xScale(b + 1);
+                }).attr('cy', function(a) {
+                    return g.yScale(a);
+                }).attr('r', c.dotR).attr('fill', c.colorSet[e]);;
+                this.lineObj[h] = l;
+            } else if (!(h in this.lineObj) && this.drawLine[h] == false) continue;;
+            this.lineObj[h].transition().duration(a * 2).style('opacity', 1);
+            this.lineObj[h].select('path').data(b[h]).transition().duration(a).attr("d", d(b[h]));
+            if (c.drawdots == true) this.lineObj[h].selectAll('circle').data(this.dataObj[h]).transition().duration(a).attr('cx', function(a, b) {
+                return g.xScale(b + 1);
+            }).attr('cy', function(a) {
+                return g.yScale(a);
+            });;
+        }
+        if (this.highlightDots != null) this.highlightDots.remove();;
+        var o = [];
+        for (var k in this.series) {
+            if (this.drawLine[this.series[k]] == true) o.push(c.colorSet[k]);;
+        };
+        this.highlightDots = this.svg.append('g').attr('class', 'highlightDots').style('pointer-events', 'none');
+        this.highlightDots.selectAll('circle').data(f(this.dataObj, 0, this.drawLine)).enter().append('circle').attr('cx', 0).attr('cy', 0).attr('r', c.dotR + 1.5).attr('fill', function(a, b) {
+            return o[b];
+        }).style('opacity', 0);
+        this.currentSeries = [];
+        for (var e in this.series) {
+            if (this.drawLine[this.series[e]] == true) this.currentSeries.push(this.series[e]);;
+        };
+    };
+    this.drawArea = function(a) {
+        var b = d3.svg.area().x(function(a, b) {
+            return g.xScale(b + 1);
+        }).y0(function(a) {
+            return g.yScale(a.top);
+        }).y1(function(a) {
+            return g.yScale(a.bot);
+        });
+        var d = d3.svg.area().x(function(a, b) {
+            return g.xScale(b + 1);
+        }).y0(function(a) {
+            return g.yScale(a.mid);
+        }).y1(function(a) {
+            return g.yScale(a.mid);
+        });
+        var h = e(this.drawLine);
+        var i = e(this.drawLine);
+        for (var j in this.series) {
+            if (this.drawLine[this.series[j]] == true) {
+                i[this.series[j]] = false;
+                break;
+            };
+        };
+        this.currentDataObj = {};
+        for (var j in this.series) {
+            if (this.drawLine[this.series[j]] == true) {
+                this.currentDataObj[this.series[j]] = [];
+                for (var k = 0; k < this.datasetLen; k++) {
+                    var l = d3.sum(f(this.dataObj, k, this.drawLine));
+                    var m = d3.sum(f(this.dataObj, k, h));
+                    var n = d3.sum(f(this.dataObj, k, i));
+                    this.currentDataObj[this.series[j]][k] = {
+                        'top': Math.round(10000 * m / l) / 100,
+                        'bot': Math.round(10000 * n / l) / 100,
+                        'mid': Math.round(10000 * (m + n) / 2 / l) / 100
+                    };
+                };
+                h[this.series[j]] = false;
+                for (var j in this.series) {
+                    if (this.drawLine[this.series[j]] == true && i[this.series[j]] == true) {
+                        i[this.series[j]] = false;
+                        break;
+                    };
+                };
+            };
+        };
+        for (var j in this.series) {
+            var o = this.series[j];
+            if (o in this.lineObj && this.drawLine[o] == false) {
+                this.lineObj[o].transition().duration(100).remove();
+                delete this.lineObj[o];
+                continue;
+            } else if (!(o in this.lineObj) && this.drawLine[o] == true) {
+                var p = this.svg.append('g').attr('id', 'series_' + o);
+                var q = p.append('path').data(this.currentDataObj[o]).attr("d", d(this.currentDataObj[o])).attr('id', 'area_' + o).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').style("fill", c.colorSet[j]).style('stroke', 'none').style('opacity', 0.5).on('mouseover', function() {
+                    d3.select(this).style('opacity', 0.8);
+                    g.tipLine.style('opacity', 1);
+                    g.tipDiv.style('display', 'block');
+                }).on('mouseout', function() {
+                    d3.select(this).style('opacity', 0.5);
+                    g.tipLine.style('opacity', 0);
+                    g.tipDiv.style('display', 'none');
+                    if (g.highlightDots != null) g.highlightDots.selectAll('circle').style('opacity', 0);;
+                }).on('mousemove', function() {
+                    g.showTip();
+                });
+                if (c.drawdots == true) var r = p.selectAll('circle').data(tmpArr).enter().append('circle').attr('cx', function(a, b) {
+                    return g.xScale(b + 1);
+                }).attr('cy', function(a) {
+                    return g.yScale(a);
+                }).attr('r', c.dotR).attr('fill', c.colorSet[j]);;
+                this.lineObj[o] = p;
+            } else if (!(o in this.lineObj) && this.drawLine[o] == false) continue;;
+            this.lineObj[o].transition().duration(a * 2).style('opacity', 1);
+            this.lineObj[o].select('path').data(this.currentDataObj[o]).transition().duration(a).attr("d", b(this.currentDataObj[o]));
+            if (c.drawdots == true) this.lineObj[o].selectAll('circle').data(this.dataObj[o]).transition().duration(a).attr('cx', function(a, b) {
+                return g.xScale(b + 1);
+            }).attr('cy', function(a) {
+                return g.yScale(a);
+            });;
+        };
+        this.currentSeries = [];
+        for (var j in this.series) {
+            if (this.drawLine[this.series[j]] == true) this.currentSeries.push(this.series[j]);;
+        };
+    };
+    this.showTip = function() {
+
+        var a = d3.mouse(g.tipSelector.node());
+        var b = a[0];
+        var d = a[1];
+        var e = d3.round(g.xScale.invert(b));
+        if (e == 0) return;;
+        if (g.currentSeries.length == 0) {
+            g.tipLine.style('opacity', 0);
+            g.tipDiv.style('display', 'none');
+            return;
+        };
+        
+        g.tipHead.text(g.xTag[e-1]);
+        var h = g.tipBody.selectAll('tr').data(g.currentSeries);
+        h.enter().append('tr');
+        h.exit().remove();
+        var i = h.selectAll('td').data(function(a) {
+            var b = g.tipValFunc(a, e - 1);
+            return [a, b];
+        });
+        i.exit().remove();
+        i.enter().append('td').text(function(a) {
+            return a;
+        }).style('color', function(a) {
+            var b = g.series.indexOf(a);
+            if (b >= 0) return g.opt.colorSet[b];
+            else return '#000';;
+        });
+        i.text(function(a) {
+            return a;
+        }).style('color', function(a) {
+            var b = g.series.indexOf(a);
+            if (b >= 0) return g.opt.colorSet[b];
+            else return '#000';;
+        });
+        g.tipLine.attr('x1', g.xScale(e)).attr('x2', g.xScale(e));
+        if (c.type == "line") {
+            var j = f(g.dataObj, e - 1, g.drawLine);
+            g.highlightDots.selectAll('circle').data(j).attr('cx', function(a) {
+                return g.xScale(e);
+            }).attr('cy', function(a) {
+                return g.yScale(a);
+            }).style('opacity', 1);
+        };
+        var k = 40;
+        var l = parseInt(g.tipDiv.style('width'), 10);
+        var m = parseInt(g.tipDiv.style('height'), 10);
+        var n = d3.select('body').node();
+        var o = d3.mouse(n)[0];
+        var p = d3.mouse(n)[1];
+        var q = o + k;
+        if (l + k + b > g.xAxisLen) q = o - k - l;;
+        if (m + d > g.yAxisLen) p -= m + d - g.yAxisLen - k;;
+        g.tipDiv.style('left', q + 'px').style('top', p + 'px');
+    };
+    this.init();
+};
+
+function m(a, b, c) {
+    this.id = a;
+    this.series = [];
+    this.dataObj = i(b, c.series, this.series);
+    this.xtag = this.dataObj.xTag;
+    this.opt = c;
+    this.drawBar = {};
+    this.xAxisLen = c.width - c.paddingLeft - c.paddingRight;
+    this.yAxisLen = c.height - c.paddingTop - c.paddingBottom;
+    this.datasetLen = b[d3.keys(b)[0]].length;
+    this.barObj = {};
+    this.currentSeries = [];
+    if (typeof a == "string") this.div = d3.select('#' + a);
+    else this.div = a;;
+    this.tipDiv = d3.select('#tipsBox');
+    this.tipHead = this.tipDiv.select('#tipHead');
+    this.tipBody = this.tipDiv.select('#tipBody');
+    this.svg = null;
+    this.xScale = null;
+    this.yScale = null;
+    this.xAxis = null;
+    this.yAxis = null;
+    this.drawBar = {};
+    var e = this;
+    this.init = function() {
+        for (var a in this.series) this.drawBar[this.series[a]] = true;;
+        this.title = this.div.append('p').attr('class', 'svgTitle').style('text-align', 'center').append('a').attr('download', c.title + '.csv').attr('href', '#').text('Fig' + c.figId + '. ' + c.title).on('click', function() {
+            var a = "Category," + e.series.join(',') + "\n";
+            for (var b = 0; b < e.datasetLen; b++) {
+                var c = [e.xtag[b]];
+                for (var d in e.series) c.push(e.dataObj[e.series[d]][b]);;
+                a += b < e.datasetLen - 1 ? c.join(',') + "\n" : c.join(',');
+            };
+            d3.select(this).attr('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(a));
+        });
+        this.svg = this.div.append('svg').attr('width', c.width).attr('height', c.height);
+        this.svg.append('rect').attr('x', 0).attr('y', 0).attr('width', c.width).attr('height', c.height).style('fill', 'none').style('opacity', .1);
+        this.xTitle = this.svg.append('text').attr("class", "axisTitle").attr("dx", c.paddingLeft / 2 + this.xAxisLen / 2).attr('dy', c.height - 8).text(c.xTitle);
+        this.yTitle = this.svg.append('text').attr("class", "axisTitle").attr("dx", -60).attr('dy', c.paddingTop + this.yAxisLen / 2 + 20).attr('transform', 'rotate(-90, ' + 0 + ',' + (c.paddingTop + this.yAxisLen / 2) + ')').text(c.yTitle);
+        this.drawLegend();
+        this.tipSelector = this.svg.append('rect').attr('class', 'overlay').attr('x', c.paddingLeft).attr('y', c.paddingTop).attr('width', this.xAxisLen).attr('height', this.yAxisLen);
+        this.redraw(0);
+    };
+    this.drawLegend = function() {
+        var a = new Array();
+        var b = 40;
+        var d = c.lengendFont / 4 * 3;
+        var f = 5;
+        var g = 0;
+        for (var i in this.series) {
+            var j = h(this.svg, c.lengendFont, this.series[i]) + d + b;
+            if (a.length > 0 && a[g][0] - j < c.paddingLeft + this.xAxisLen / 3) {
+                f += d + 10;
+                g = i;
+            } else {
+                for (var k = g; k < a.length; k++) a[k][0] -= j;;
+            };
+            a.push([(c.width - c.paddingRight - j), f]);
+        };
+        var l = c.width - c.paddingRight - a.length * (d + b) - d3.sum(a);
+        var m = this.svg.append('g').attr('id', 'lengend');
+        for (var i in this.series) {
+            var n = this.series[i];
+            m.append('rect').data([i]).attr('x', a[i][0]).attr('y', a[i][1]).attr('rx', 2).attr('ry', 2).attr('width', d).attr('height', d).style('stroke', c.colorSet[i]).style('stroke-width', 2).style('fill', c.colorSet[i]).on('mouseover', function(a) {
+                if (e.drawBar[e.series[a]] == true) {
+                    for (var b in e.barObj) {
+                        if (e.drawBar[b] != true) continue;;
+                        if (e.series[a] != b) e.barObj[b].style('opacity', .3);
+                        else e.barObj[b].style('opacity', 1);;
+                    };
+                };
+            }).on('mouseout', function(a) {
+                for (var b in e.barObj) {
+                    if (e.drawBar[b] == true) e.barObj[b].style('opacity', .8);;
+                };
+            }).on('click', function(a) {
+                if (e.drawBar[e.series[a]] == true) {
+                    e.drawBar[e.series[a]] = false;
+                    d3.select(this).style('fill', '#fff');
+                } else {
+                    e.drawBar[e.series[a]] = true;
+                    d3.select(this).style('fill', e.opt.colorSet[a]);
+                };
+                e.redraw(e.opt.duration);
+            });
+            m.append('text').attr('dx', a[i][0] + d + 5).attr('dy', a[i][1] + 13).style('font-size', c.lengendFont + 'px').text(n);
+        };
+    };
+    this.redraw = function(a) {
+        this.drawAxis(a);
+        this.drawBar(a);
+    };
+    this.drawAxis = function(a) {
+        var b = d(this.dataObj, this.drawBar, d3.max);
+        var e = 0;
+        this.xScale = d3.scale.ordinal().domain(this.xtag).rangeRoundBands([c.paddingLeft, c.paddingLeft + this.xAxisLen], .1);
+        this.yScale = d3.scale.linear().domain([e, b]).range([c.paddingTop + this.yAxisLen, c.paddingTop]);
+        if (this.datasetLen > 10) var f = d3.svg.axis().scale(this.xScale).tickSize(7, 10, 3).orient("bottom").tickFormat(function(a, b) {
+            if ((b + 1) % 5 == 0) return a;
+            else return '';
+        });
+        else var f = d3.svg.axis().scale(this.xScale).tickSize(7, 10, 3).orient("bottom");
+        var g = d3.svg.axis().scale(this.yScale).tickSize(7, 10, 3).orient("left");
+        if (c.innerLine) g.tickSize(-this.xAxisLen, 10, 3);;
+        if (this.xAxis === null) {
+            this.xAxis = this.svg.append("g").attr("class", "x axis").attr("transform", "translate(0," + (c.height - c.paddingBottom) + ")").call(f);
+            this.yAxis = this.svg.append("g").attr("class", "y axis").attr("transform", "translate(" + c.paddingLeft + ",0)").call(g);
+        } else if (b) {
+            this.xAxis.transition().duration(a).call(f);
+            this.yAxis.transition().duration(a).call(g);
+        };
+        var h = c.paddingTop + this.yAxisLen / 2 + 20 + 65 + this.yAxis.node().getBBox().x;
+        this.yTitle.attr("dy", h);
+    };
+    this.drawBar = function(a) {
+        this.currentSeries = [];
+        for (var b in this.series) {
+            if (this.drawBar[this.series[b]] == true) this.currentSeries.push(this.series[b]);;
+        };
+        var c = d3.scale.ordinal().domain(this.currentSeries).rangeRoundBands([0, this.xScale.rangeBand()], .1);
+        for (var b in this.series) {
+            var d = this.series[b];
+            if (d in this.barObj && this.drawBar[d] == false) {
+                this.barObj[d].transition().duration(100).remove();
+                delete this.barObj[d];
+                continue;
+            } else if (!(d in this.barObj) && this.drawBar[d] == true) {
+                var f = this.svg.append('g').attr('id', 'series_' + d);
+                var g = f.selectAll('rect').data(e.dataObj[d]).enter().append('rect').attr('id', function(a, b) {
+                    return d + '_' + b;
+                }).attr('x', function(a, b) {
+                    return e.xScale(e.xtag[b]) + c(d);
+                }).attr('y', function(a) {
+                    return e.yScale(0);
+                }).attr('width', c.rangeBand()).attr('height', 0).style('fill', function(a) {
+                    return e.opt.colorSet[b];
+                }).on('mouseover', function(a, b) {
+                    d3.select(this).attr('stroke', '#000').attr('stroke-width', 1);
+                    e.tipDiv.style('display', 'block');
+                }).on('mouseout', function(a) {
+                    d3.select(this).attr('stroke', 'none');
+                    e.tipDiv.style('display', 'none');
+                }).on('mousemove', function(a, b) {
+                    e.showTip(a, b);
+                });
+                this.barObj[d] = f;
+            } else if (!(d in this.barObj) && this.drawBar[d] == false) continue;;
+            this.barObj[d].transition().duration(a * 2).style('opacity', .8);
+            this.barObj[d].selectAll('rect').data(e.dataObj[d]).transition().duration(a).attr('x', function(a, b) {
+                return e.xScale(e.xtag[b]) + c(d);
+            }).attr("y", function(a) {
+                return e.yScale(a);
+            }).attr('width', c.rangeBand()).attr("height", function(a) {
+                return e.yScale(0) - e.yScale(a);
+            });
+        };
+    };
+    this.showTip = function(a, b) {
+        var c = d3.mouse(e.tipSelector.node());
+        var d = c[0];
+        var f = c[1];
+        if (!e.currentSeries) return;;
+        e.tipHead.text(e.xtag[b]);
+        var g = e.tipBody.selectAll('tr').data(e.currentSeries);
+        g.enter().append('tr');
+        g.exit().remove();
+        var h = g.selectAll('td').data(function(a) {
+            return [a, e.dataObj[a][b]];
+        });
+        h.exit().remove();
+        h.enter().append('td').text(function(a) {
+            return a;
+        }).style('color', function(a, b) {
+            if (b == 0) {
+                var c = e.series.indexOf(a);
+                return e.opt.colorSet[c];
+            } else return '#000';;
+        });
+        h.text(function(a) {
+            return a;
+        }).style('color', function(a, b) {
+            if (b == 0) {
+                var c = e.series.indexOf(a);
+                return e.opt.colorSet[c];
+            } else return '#000';;
+        });
+        var i = 40;
+        var j = parseInt(e.tipDiv.style('width'), 10);
+        var k = parseInt(e.tipDiv.style('height'), 10);
+        var l = d3.select('body').node();
+        var m = d3.mouse(l)[0];
+        var n = d3.mouse(l)[1];
+        var o = m + i;
+        if (j + i + d > e.xAxisLen) o = m - i - j;;
+        if (k + f > e.yAxisLen) n -= k + f - e.yAxisLen - i;;
+        e.tipDiv.style('left', o + 'px').style('top', n + 'px');
+    };
+    this.init();
+};
+
+function n(a, c, d) {
+    this.dataObj = d;
+    this.colNum = d[0].length;
+    this.rowNum = d.length - 1;
+    var e = this;
+    if (typeof a == "string") this.tableDiv = d3.select('#' + a);
+    else this.tableDiv = a;;
+    this.mainTable = this.tableDiv.append('table').attr('class', 'infoTable').attr('cellspacing', 0).style('margin', 'auto');
+    this.caption = this.mainTable.append('caption').append('a').attr('download', c + '.csv').attr('href', '#').text(function() {
+        b.tabId += 1;
+        return "Tab" + b.tabId + '. ' + c;
+    }).on('click', function() {
+        var a = "";
+        for (var b in e.dataObj) {
+            var c = e.dataObj[b].map(function(a) {
+                return a.toString().replace(/,/g, ';');
+            }).join(",");
+            a += b < e.dataObj.length ? c + "\n" : c;
+        };
+        e.caption.attr('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(a));
+    });
+    this.tableHead = this.mainTable.append('thead').append("tr");
+    this.tableHead.selectAll('th').data(this.dataObj[0]).enter().append('th').text(function(a) {
+        return a;
+    });
+    this.tableBody = this.mainTable.append('tbody');
+    this.tableBody.selectAll('tbody').data(this.dataObj.slice(1, this.dataObj.length)).enter().append('tr').selectAll('td').data(function(a) {
+        return a;
+    }).enter().append('td').text(function(a) {
+        return a;
+    });
+};
+
+function o(b, d, f) {
+    var g = d3.select("#" + b).append("div").attr("id", c(d.name)).attr("class", "section");
+    var h = true;
+    for (var i in d.data) {
+        if (d.data[i][2]) h = false;;
+    };
+    if (h) {
+        d.empty = true;
+        return g;
+    } else d.empty = false;;
+    var j = g.append("div");
+    j.append("a").attr("href", "#reportTitle").attr("onfocus", "javascript:this.blur()").style("text-decoration", "none").append("h2").attr("class", "sectionHead titleText").text(d.name);
+    j.append("div").attr("class", "splitLine");
+    for (var i in d.data) {
+        var k = d.data[i];
+        if (k[2]) {
+            var o = g.append("div").attr("id", c(k[1]));
+            if (k[0] == "table") {
+                o.attr("class", "tableBlock");
+                var p = new n(o, k[1], k[2]);
+            } else {
+                if (f == 'False') a.colorSet = ['#dc143c', '#32cd32', '#f4a460', '#1e90ff', '#696969', '#ff5995', '#b6e354', '#feed6c', '#8cedff', '#9e6ffe', '#899ca1', '#56c2d6', '#bf4646', '#516083', '#f92672', '#82b414', '#fd971f', '#465457', '#808384', '#8c54fe'];
+                else a.colorSet = ['#dc143c', '#1e90ff', '#f4a460', '#32cd32', '#696969', '#ff5995', '#b6e354', '#feed6c', '#8cedff', '#9e6ffe', '#899ca1', '#56c2d6', '#bf4646', '#516083', '#f92672', '#82b414', '#fd971f', '#465457', '#808384', '#8c54fe'];;
+                o.attr("class", "graphBlock");
+                a.figId += 1;
+                var q = e(a);
+                q.title = k[1];
+                for (var r in k[3]) q[r] = k[3][r];
+                if (k[0] == "line") var s = new l(o, k[2], q);
+                else if (k[0] == "bar") var s = new m(o, k[2], q);;
+            };
+        };
+    };
+    return g;
+}
+
+function p(a) {
+    var b = d3.select("#container").append("div").attr("id", "floatContents").attr("class", "contents");
+    var d = b.append("h4").text("Contents").attr("class", "titleText");
+    var e = 0;
+    var f = 0;
+    for (var g in a) {
+        if (a[g].empty) continue;;
+        var h = c(a[g].name);
+        var i = b.append("ul").attr("class", "entry");
+        var j = i.append("div").attr("class", "entryDot");
+        var k = i.append("a").attr("href", "#" + h).attr("onfocus", "javascript:this.blur()").append("li").attr("class", "titleText").text(a[g].name);
+        var l = i.append("ul").attr("class", "subEntry").style("display", "none");
+        for (var m in a[g].data) {
+            if (!a[g].data[m][2]) continue;;
+            var n = l.append("a").attr("href", "#" + c(a[g].data[m][1])).attr("onfocus", "javascript:this.blur()").append("li").attr("class", "titleText").text(function() {
+                var b = '';
+                if (a[g].data[m][0] === 'table') {
+                    e += 1;
+                    b = 'Tab ' + e + '. ' + a[g].data[m][1];
+                } else {
+                    f += 1;
+                    b = 'Fig ' + f + '. ' + a[g].data[m][1];
+                }
+                return b;
+            });
+        };
+        i.on("mouseover", function() {
+            d3.select(this).select("ul").style("display", "block");
+            d3.select(this).style("background-color", "#DDD");
+        }).on("mouseleave", function() {});
+    };
+    q();
+    b.style("display", "none");
+    d3.select("#controlPad").style("height", d3.select("#container").property("offsetHeight") + "px").on("click", function() {
+        b.style("display", b.style("display") == "none" ? "block" : "none");
+    });
+    b.on("mouseleave", function() {
+        arr = d3.select("#container").selectAll(".entry");
+        for (var a in arr[0]) {
+            if (a === 'parentNode') continue;
+            d3.select(arr[0][a]).select("ul").style("display", "none");
+            d3.select(arr[0][a]).style("background-color", "");
+        }
+    });
+}
+
+function q() {
+    margin1 = parseInt(d3.select("#reportBody").style("margin").split(" ")[1].slice(0, -2));
+    margin2 = parseInt(d3.select("#container").style("margin").split(" ")[1].slice(0, -2));
+    d3.select("#controlPad").style("width", function() {
+        var a;
+        if (margin2 < 0) a = margin1;
+        else a = margin1 + margin2;
+        return a + "px";
+    });
+}
+
+function r(a, b) {
+    var c = {
+        "Normal": "#CFE593",
+        "Warn": "#FFFF8C",
+        "Fail": "#FF9494"
+    };
+    var d = a.selectAll("tr").filter(function(a, c) {
+        return a[0] in b;
+    });
+    for (var e = 0; e < d[0].length; e++) {
+        var f = d3.select(d[0][e]).selectAll("td");
+        var g = f.data();
+        var h = b[g[0]];
+        var i = g[1];
+        var k = "None";
+        for (var l in h) {
+            var m = h[l].substr(0, 1);
+            var n = Number(h[l].substr(1));
+            if (j(m, i, n)) {
+                if (l == 0) {
+                    k = "Normal";
+                    break;
+                } else k = "Warn";;
+            } else {
+                if (l == 1) k = "Fail";;
+            };
+        };
+        if (k != "None") d3.select(f[0][1]).style("background", c[k]);;
+    };
+};
+
+function s(a, b) {
+    var c = {
+        "Normal": "#CFE593",
+        "Warn": "#FFFF8C",
+        "Fail": "#FF9494"
+    };
+    var d = a.selectAll("tr").filter(function(a, c) {
+        return a[0] in b;
+    });
+    for (var e = 0; e < d[0].length; e++) {
+        var f = d3.select(d[0][e]).selectAll("td");
+        var g = f.data();
+        var h = b[g[0]];
+        var i = g[3];
+        var k = g[6];
+        var l = "None";
+        for (var m in h) {
+            var n = h[m].substr(0, 1);
+            var o = Number(h[m].substr(1));
+            if (j(n, i, o)) {
+                if (m == 0) {
+                    l = "Normal";
+                    break;
+                } else l = "Warn";;
+            } else {
+                if (m == 1) l = "Fail";;
+            };
+        };
+        if (l != "None") d3.select(f[0][3]).style("background", c[l]);;
+        var l = "None";
+        for (var m in h) {
+            var n = h[m].substr(0, 1);
+            var o = Number(h[m].substr(1));
+            if (j(n, k, o)) {
+                if (m == 0) {
+                    l = "Normal";
+                    break;
+                } else l = "Warn";;
+            } else {
+                if (m == 1) l = "Fail";;
+            };
+        };
+        if (l != "None") d3.select(f[0][6]).style("background", c[l]);;
+    };
+};
+var t = d3.select("#reportBody");
+t.append("h1").attr("id", "reportTitle").attr("class", "titleText").attr("align", "center").text(reportTitle);
+t.append("h2").attr("id", "date").attr("class", "titleText").attr("align", "right").style("margin", "0 50px 150px 0").text(reportTime);
+
