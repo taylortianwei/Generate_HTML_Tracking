@@ -4,7 +4,7 @@
 #ssh -T git@github.com
 
 ## Enters the folder you want to push to Github, generated your local database, input your github id and email to the database
-git init
+#git init
 #git config user.name "taylortianwei"
 #git config user.email "tianwei@genomics.cn"
 
@@ -16,5 +16,5 @@ git commit  -m  'generate tracking document'
 #git remote rm BGI-GTD
 
 ## push 
-git remote add BGI-GTD git@github.com:taylortianwei/Generate_HTML_Tracking.git
+#git remote add BGI-GTD git@github.com:taylortianwei/Generate_HTML_Tracking.git
 git push -f -u BGI-GTD master

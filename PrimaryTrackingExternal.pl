@@ -251,9 +251,9 @@ sub OutRecord
 			foreach my $flowcell(sort {$BI->{reportTime}{$a} cmp $BI->{reportTime}{$b} or $a cmp $b} keys %$SubHash){
 				$count++;
 				if($k eq "ReadNum" or $k eq "BaseNum"){
-					$record{$flowcell}.=sprintf("%.2f",$SubHash->{$flowcell})."\t";
+					$record{$flowcell}.="\t".sprintf("%.2f",$SubHash->{$flowcell});
 				}else{
-					$record{$flowcell}.=sprintf("%.2f",&CalCovAvg(\@{$SubHash->{$flowcell}},1..scalar(@{$SubHash->{$flowcell}})))."\t";
+					$record{$flowcell}.="\t".sprintf("%.2f",&CalCovAvg(\@{$SubHash->{$flowcell}},1..scalar(@{$SubHash->{$flowcell}})));
 				}
 				$num->{$flowcell}=$count;
 			}
@@ -262,7 +262,7 @@ sub OutRecord
 	$out.="\n";
 	foreach my $j(sort {$num->{$a}<=>$num->{$b} or $a cmp $b} keys %record){
 		my @kkk=split(/\_/,$j);
-		$out.=join("\t",$BI->{Machine}{$j},@kkk,$BI->{reportTime}{$j},$record{$j})."\n";
+		$out.=join("\t",$BI->{Machine}{$j},@kkk,$BI->{reportTime}{$j}).$record{$j}."\n";
 	}
 	return $out;
 }

@@ -11,7 +11,7 @@ my $tempdir="$FindBin::Bin/";
 my $json=read_file("$tempdir/StoreHtml.hash", { binmode => ':raw' });
 my %Html=%{ decode_json $json };
 
+print Dumper %Html;
 
-
-$json = encode_json \%Html;
-write_file("$tempdir/StoreHtml.hash", { binmode => ':raw' }, $json);
+#$json = encode_json \%Html;
+#write_file("$tempdir/StoreHtml.hash", { binmode => ':raw' }, $json);

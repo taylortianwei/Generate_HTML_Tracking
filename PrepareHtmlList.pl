@@ -45,6 +45,7 @@ foreach my $ff(readdir D_R){
 		next unless $a[5]=~/$flowcell\_(L\d+)\_(.*)/ and $a[0]=~/^1|2|3|4/;
 		my $lane="L0".$a[0];
 		next if $html{$zebra}{$flowcell."\_".$lane};	
+print join("\t",localtime(),"NEW ADD",$zebra,$flowcell,$lane),"\n";
 
 		unless ($a[12]){
 			if($ff=~/badrun|BAD RUN|BAD_RUN/){
